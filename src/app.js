@@ -1,37 +1,56 @@
 var UI = require('ui');
 var ajax = require('ajax');
 
-
-// Construct URL
-var URL = 'http://192.168.1.70:1337/device/temperature?id=1';
-
-// Create a Card with title and subtitle
-var card = new UI.Card({
-  title:'Room Temperature',
-  subtitle:'Fetching...'
+var URL = 'http://192.168.1.70:1337';
+var menu = new UI.Menu({
 });
 
-// Make the request
+menu.on('select', function(e) {
+  console.log('Selected item #' + e.item.code_id + ' of section #');
+  ajax(
+    {
+      url: URL + "/code/emit?id=" + e.item.code_id,
+      type: 'json'
+    },
+    function(data) {
+
+      
+    },
+    function(error) {
+    }
+  );
+});
+
 ajax(
   {
-    url: URL,
+    url: URL + "/device/",
     type: 'json'
   },
   function(data) {
-  // Success!
-  console.log('Successfully fetched weather data!');
-
-  // Extract data
-  card.body("DONE");
-  card.subtitle(data);
-
-},
+    console.log( data.length);
+    
+    for (var i = 0; i < data.length; i++) {
+      var section = {},
+          items = [];
+      section.title = data[i].macaddress;
+      for (var j = 0; j < data[i].codes.length; j++) {
+        items.push(
+          {
+            title: data[i].codes[j].action,
+            code_id: data[i].codes[j].id
+          });
+      }
+      section.items = items;
+      
+      menu.section(i, section);
+    }
+    
+    
+    menu.show();
+    
+  },
   function(error) {
-    // Failure!
-    console.log('Failed fetching weather data: ' + error);
   }
 );
 
 
-// Display the Card
-card.show();
